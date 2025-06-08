@@ -12,8 +12,9 @@ export async function getSetting<T>(name: string, defaultValue: T): Promise<T> {
   if (!setting) {
     setting = await select().from('setting').execute(pool);
   }
-  const currentSettings = setting; // TS sait que ce n'est pas undefined ici
-  const row = currentSettings.find((s) => s.name === name);
+  // Ici, on précise à TypeScript que 'setting' est bien défini avec le '!'
+  const row = setting!.find((s) => s.name === name);
+
   if (row) {
     return row.value;
   } else {
@@ -24,3 +25,4 @@ export async function getSetting<T>(name: string, defaultValue: T): Promise<T> {
 export async function refreshSetting(): Promise<void> {
   setting = await select().from('setting').execute(pool);
 }
+
