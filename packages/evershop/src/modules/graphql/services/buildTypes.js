@@ -1,6 +1,7 @@
 import path from 'path';
 import { loadFilesSync } from '@graphql-tools/load-files';
 import { mergeTypeDefs } from '@graphql-tools/merge';
+import { print } from 'graphql';  // <- importer print pour convertir AST en string
 import { getEnabledExtensions } from '../../../bin/extension/index.js';
 import { CONSTANTS } from '../../../lib/helpers.js';
 
@@ -22,10 +23,10 @@ export function buildTypeDefs(isAdmin = false) {
 
   let mergedTypeDefs = mergeTypeDefs(loadedDefsArrays);
 
-  // Extraire le contenu textuel des typeDefs pour vérifier la présence de "type Query"
+  // Convertir mergedTypeDefs AST en string SDL avec print
   const typeDefsStr = typeof mergedTypeDefs === 'string'
     ? mergedTypeDefs
-    : mergedTypeDefs.loc?.source.body || mergedTypeDefs.join(' ');
+    : print(mergedTypeDefs);
 
   // Ajouter un type Query vide si non présent
   if (!typeDefsStr.includes('type Query')) {
