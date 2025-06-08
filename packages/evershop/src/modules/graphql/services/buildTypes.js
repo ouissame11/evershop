@@ -13,13 +13,27 @@ export function buildTypeDefs(isAdmin = false) {
   extensions.forEach((extension) => {
     typeSources.push(path.join(extension.path, 'graphql/types/**/*.graphql'));
   });
-  const typeDefs = mergeTypeDefs(
-    typeSources.map((source) =>
-      loadFilesSync(source, {
-        ignoredExtensions: isAdmin ? [] : ['.admin.graphql']
-      })
-    )
+
+  const loadedDefsArrays = typeSources.map((source) =>
+    loadFilesSync(source, {
+      ignoredExtensions: isAdmin ? [] : ['.admin.graphql']
+    })
   );
 
-  return typeDefs;
+  let mergedTypeDefs = mergeTypeDefs(loadedDefsArrays);
+
+  // Extraire le contenu textuel des typeDefs pour vérifier la présence de "type Query"
+  const typeDefsStr = typeof mergedTypeDefs === 'string'
+    ? mergedTypeDefs
+    : mergedTypeDefs.loc?.source.body || mergedTypeDefs.join(' ');
+
+  // Ajouter un type Query vide si non présent
+  if (!typeDefsStr.includes('type Query')) {
+    mergedTypeDefs = mergeTypeDefs([
+      mergedTypeDefs,
+      `type Query { _empty: String }`
+    ]);
+  }
+
+  return mergedTypeDefs;
 }
