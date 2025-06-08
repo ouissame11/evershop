@@ -6,26 +6,25 @@ import { getEnabledExtensions } from '../../../bin/extension/index.js';
 import { CONSTANTS } from '../../../lib/helpers.js';
 
 export async function buildResolvers(isAdmin = false) {
-  const typeSources = [
+  const resolverSources = [
     path.join(CONSTANTS.MODULESPATH, '*/graphql/types/**/*.resolvers.{js,ts}')
   ];
 
   const extensions = getEnabledExtensions();
   extensions.forEach((extension) => {
-    typeSources.push(
+    resolverSources.push(
       path.join(extension.path, 'graphql/types/**/*.resolvers.{js,ts}')
     );
   });
 
-  // Using loadFiles with an array of glob patterns instead of joining them
   const resolvers = mergeResolvers(
-    await loadFiles(typeSources, {
+    await loadFiles(resolverSources, {
       ignoredExtensions: isAdmin
         ? []
         : ['.admin.resolvers.js', '.admin.resolvers.ts'],
-      requireMethod: async (path) => {
-        const module = await import(url.pathToFileURL(path));
-        return module;
+      requireMethod: async (filePath) => {
+        const mod = await import(url.pathToFileURL(filePath));
+        return mod;
       }
     })
   );
